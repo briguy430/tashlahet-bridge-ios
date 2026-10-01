@@ -1,0 +1,52 @@
+name: iOS build and tests
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  ios:
+    runs-on: macos-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select an available iPhone simulator
+        shell: bash
+        run: |
+          xcrun simctl list devices available -j > "$RUNNER_TEMP/simulators.json"
+          python3 - "$RUNNER_TEMP/simulators.json" "$GITHUB_ENV" <<'PY'
+          import json, sys
+          with open(sys.argv[1]) as file:
+              devices = json.load(file)["devices"]
+          phones = [device for group in devices.values() for device in group
+                    if device.get("isAvailable") and "iPhone" in device["name"]]
+          if not phones:
+              raise SystemExit("No available iPhone simulator runtime on this runner")
+          with open(sys.argv[2], "a") as file:
+              file.write("TASHLAHET_SIMULATOR=" + phones[0]["udid"] + "\n")
+          PY
+      - name: Test the iPhone client
+        run: >-
+          xcodebuild test -project TashlahetBridge.xcodeproj
+          -scheme TashlahetBridge
+          -destination "platform=iOS Simulator,id=$TASHLAHET_SIMULATOR"
+          -derivedDataPath build/DerivedData
+          -resultBundlePath build/Tests.xcresult
+          -collect-test-diagnostics never
+          CODE_SIGNING_ALLOWED=NO
+      - name: Build for physical iPhones without signing
+        run: >-
+          xcodebuild build -project TashlahetBridge.xcodeproj
+          -scheme TashlahetBridge
+          -destination 'generic/platform=iOS'
+          -derivedDataPath build/Device
+          CODE_SIGNING_ALLOWED=NO
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: iOS-test-results
+          path: build/Tests.xcresult
+          if-no-files-found: ignore

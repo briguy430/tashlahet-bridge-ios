@@ -1,0 +1,453 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		2735C7E44130E3650E0E25E1 /* TashlahetBridgeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8FA33B5B56864E0A1E412DD /* TashlahetBridgeApp.swift */; };
+		507B3A59D94B82AD7B5029FE /* TranslationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CBF15CC9C24AC74BAABB39D /* TranslationService.swift */; };
+		50E3F354964A182B9C86CD68 /* VoiceActivitySegmenterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DCA6488CB378155842D3BBC /* VoiceActivitySegmenterTests.swift */; };
+		54606374B55C25FA49D9EF51 /* VoiceActivitySegmenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72881A4EE583AC4E5211DDAC /* VoiceActivitySegmenter.swift */; };
+		5DA1CD8E8181628CD9A7E314 /* AudioProcessingPipelineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12EE75B7E2B0985424230CCC /* AudioProcessingPipelineTests.swift */; };
+		95D2584D94BA74EBF3A2E38E /* ConnectionSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C09E3996AC44BC43469EA23A /* ConnectionSettingsView.swift */; };
+		B08001B4107C7E3256157274 /* TranslationServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D29790CAE590D1E0139A71C /* TranslationServiceTests.swift */; };
+		C4BFFA714DC2DEB7A740608E /* TranslationClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 116C11992EBE65B00D53ABCC /* TranslationClient.swift */; };
+		D2BB75F6B1915F66660CF40C /* ConversationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF582C878F1CB4F8CCADD04B /* ConversationView.swift */; };
+		D9FFEA04FD214BCDD36EE94D /* TranslationClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 081C3911261788E23807AAF7 /* TranslationClientTests.swift */; };
+		EB6B365D10BED6AE9D7C14C5 /* BridgeModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72CFFEE3999B7B9139104073 /* BridgeModels.swift */; };
+		F1C2F81FF96524AD2205E9AB /* TokenStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 486F9C3D33035F071C7D2E9A /* TokenStore.swift */; };
+		FEC0BD2BEF9291B313339DC0 /* AudioCaptureEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FC9C212BF55AEE008E1046C /* AudioCaptureEngine.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		4368214EC5068A0D3F617AC4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1FFB30C4B40D0543EBEDADA3 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 204FF2093B41E91F9DA559E5;
+			remoteInfo = TashlahetBridge;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		081C3911261788E23807AAF7 /* TranslationClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslationClientTests.swift; sourceTree = "<group>"; };
+		116C11992EBE65B00D53ABCC /* TranslationClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslationClient.swift; sourceTree = "<group>"; };
+		12593DEF52C6BB2929897D3B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		12EE75B7E2B0985424230CCC /* AudioProcessingPipelineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioProcessingPipelineTests.swift; sourceTree = "<group>"; };
+		2CBF15CC9C24AC74BAABB39D /* TranslationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslationService.swift; sourceTree = "<group>"; };
+		2D29790CAE590D1E0139A71C /* TranslationServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslationServiceTests.swift; sourceTree = "<group>"; };
+		486F9C3D33035F071C7D2E9A /* TokenStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenStore.swift; sourceTree = "<group>"; };
+		4AA8F2B1933F75F5F966E500 /* TashlahetBridgeTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = TashlahetBridgeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		72881A4EE583AC4E5211DDAC /* VoiceActivitySegmenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceActivitySegmenter.swift; sourceTree = "<group>"; };
+		72CFFEE3999B7B9139104073 /* BridgeModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BridgeModels.swift; sourceTree = "<group>"; };
+		7FC9C212BF55AEE008E1046C /* AudioCaptureEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioCaptureEngine.swift; sourceTree = "<group>"; };
+		8DCA6488CB378155842D3BBC /* VoiceActivitySegmenterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceActivitySegmenterTests.swift; sourceTree = "<group>"; };
+		BF582C878F1CB4F8CCADD04B /* ConversationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationView.swift; sourceTree = "<group>"; };
+		C09E3996AC44BC43469EA23A /* ConnectionSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionSettingsView.swift; sourceTree = "<group>"; };
+		D954C642600D9486C4DE5D70 /* TashlahetBridge.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = TashlahetBridge.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E8FA33B5B56864E0A1E412DD /* TashlahetBridgeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TashlahetBridgeApp.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		18CBEA492C5C3814FBD4C723 = {
+			isa = PBXGroup;
+			children = (
+				D21FF3B04F97EBB51F7ACA8E /* TashlahetBridge */,
+				52D837AE137AF22D7E89DF6B /* TashlahetBridgeTests */,
+				EE6D6B7792005DC65CF9AE08 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		52D837AE137AF22D7E89DF6B /* TashlahetBridgeTests */ = {
+			isa = PBXGroup;
+			children = (
+				12EE75B7E2B0985424230CCC /* AudioProcessingPipelineTests.swift */,
+				081C3911261788E23807AAF7 /* TranslationClientTests.swift */,
+				2D29790CAE590D1E0139A71C /* TranslationServiceTests.swift */,
+				8DCA6488CB378155842D3BBC /* VoiceActivitySegmenterTests.swift */,
+			);
+			path = TashlahetBridgeTests;
+			sourceTree = "<group>";
+		};
+		D21FF3B04F97EBB51F7ACA8E /* TashlahetBridge */ = {
+			isa = PBXGroup;
+			children = (
+				7FC9C212BF55AEE008E1046C /* AudioCaptureEngine.swift */,
+				72CFFEE3999B7B9139104073 /* BridgeModels.swift */,
+				C09E3996AC44BC43469EA23A /* ConnectionSettingsView.swift */,
+				BF582C878F1CB4F8CCADD04B /* ConversationView.swift */,
+				12593DEF52C6BB2929897D3B /* Info.plist */,
+				E8FA33B5B56864E0A1E412DD /* TashlahetBridgeApp.swift */,
+				486F9C3D33035F071C7D2E9A /* TokenStore.swift */,
+				116C11992EBE65B00D53ABCC /* TranslationClient.swift */,
+				2CBF15CC9C24AC74BAABB39D /* TranslationService.swift */,
+				72881A4EE583AC4E5211DDAC /* VoiceActivitySegmenter.swift */,
+			);
+			path = TashlahetBridge;
+			sourceTree = "<group>";
+		};
+		EE6D6B7792005DC65CF9AE08 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D954C642600D9486C4DE5D70 /* TashlahetBridge.app */,
+				4AA8F2B1933F75F5F966E500 /* TashlahetBridgeTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		204FF2093B41E91F9DA559E5 /* TashlahetBridge */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 43A84F1B7996384FA0B14B51 /* Build configuration list for PBXNativeTarget "TashlahetBridge" */;
+			buildPhases = (
+				D2F8913843A82B30760194CA /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = TashlahetBridge;
+			packageProductDependencies = (
+			);
+			productName = TashlahetBridge;
+			productReference = D954C642600D9486C4DE5D70 /* TashlahetBridge.app */;
+			productType = "com.apple.product-type.application";
+		};
+		D84D44E654534F37F3A58AE4 /* TashlahetBridgeTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3215FED3DED4709F63406CFC /* Build configuration list for PBXNativeTarget "TashlahetBridgeTests" */;
+			buildPhases = (
+				84B99A9FEA530E2C02A3CA9E /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A4E099C36AE75D7028AAA45C /* PBXTargetDependency */,
+			);
+			name = TashlahetBridgeTests;
+			packageProductDependencies = (
+			);
+			productName = TashlahetBridgeTests;
+			productReference = 4AA8F2B1933F75F5F966E500 /* TashlahetBridgeTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		1FFB30C4B40D0543EBEDADA3 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					204FF2093B41E91F9DA559E5 = {
+						ProvisioningStyle = Automatic;
+					};
+					D84D44E654534F37F3A58AE4 = {
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 36E5658022BBAE0029A390F7 /* Build configuration list for PBXProject "TashlahetBridge" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 18CBEA492C5C3814FBD4C723;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = EE6D6B7792005DC65CF9AE08 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				204FF2093B41E91F9DA559E5 /* TashlahetBridge */,
+				D84D44E654534F37F3A58AE4 /* TashlahetBridgeTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		84B99A9FEA530E2C02A3CA9E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5DA1CD8E8181628CD9A7E314 /* AudioProcessingPipelineTests.swift in Sources */,
+				D9FFEA04FD214BCDD36EE94D /* TranslationClientTests.swift in Sources */,
+				B08001B4107C7E3256157274 /* TranslationServiceTests.swift in Sources */,
+				50E3F354964A182B9C86CD68 /* VoiceActivitySegmenterTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D2F8913843A82B30760194CA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FEC0BD2BEF9291B313339DC0 /* AudioCaptureEngine.swift in Sources */,
+				EB6B365D10BED6AE9D7C14C5 /* BridgeModels.swift in Sources */,
+				95D2584D94BA74EBF3A2E38E /* ConnectionSettingsView.swift in Sources */,
+				D2BB75F6B1915F66660CF40C /* ConversationView.swift in Sources */,
+				2735C7E44130E3650E0E25E1 /* TashlahetBridgeApp.swift in Sources */,
+				F1C2F81FF96524AD2205E9AB /* TokenStore.swift in Sources */,
+				C4BFFA714DC2DEB7A740608E /* TranslationClient.swift in Sources */,
+				507B3A59D94B82AD7B5029FE /* TranslationService.swift in Sources */,
+				54606374B55C25FA49D9EF51 /* VoiceActivitySegmenter.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		A4E099C36AE75D7028AAA45C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 204FF2093B41E91F9DA559E5 /* TashlahetBridge */;
+			targetProxy = 4368214EC5068A0D3F617AC4 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		021A9DF9C1B341AB98AC8370 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.briguy.tashlahetbridge.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TashlahetBridge.app/TashlahetBridge";
+			};
+			name = Debug;
+		};
+		0C523DC6CE3326479548B796 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.briguy.tashlahetbridge.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TashlahetBridge.app/TashlahetBridge";
+			};
+			name = Release;
+		};
+		5142B7CFD5802D5851908D72 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		56EE4A08AE09F49C36D89069 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		66057E81AFC0BD84531F19B6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TashlahetBridge/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Tashlahet Bridge";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Connect to your translation server on the same Wi-Fi network.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Translate the conversation you choose to record into English.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.briguy.tashlahetbridge;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		FBBB8CA6CD58D58F44A66252 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TashlahetBridge/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Tashlahet Bridge";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Connect to your translation server on the same Wi-Fi network.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Translate the conversation you choose to record into English.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.briguy.tashlahetbridge;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		3215FED3DED4709F63406CFC /* Build configuration list for PBXNativeTarget "TashlahetBridgeTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				021A9DF9C1B341AB98AC8370 /* Debug */,
+				0C523DC6CE3326479548B796 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		36E5658022BBAE0029A390F7 /* Build configuration list for PBXProject "TashlahetBridge" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				56EE4A08AE09F49C36D89069 /* Debug */,
+				5142B7CFD5802D5851908D72 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		43A84F1B7996384FA0B14B51 /* Build configuration list for PBXNativeTarget "TashlahetBridge" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				66057E81AFC0BD84531F19B6 /* Debug */,
+				FBBB8CA6CD58D58F44A66252 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 1FFB30C4B40D0543EBEDADA3 /* Project object */;
+}
