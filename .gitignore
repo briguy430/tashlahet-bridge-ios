@@ -5,6 +5,10 @@ DerivedData/
 xcuserdata/
 .DS_Store
 .env
+backend/.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
 verification/*.log
 verification/*.xcresult/
 verification/*.png

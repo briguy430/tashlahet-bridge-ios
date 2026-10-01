@@ -6,7 +6,39 @@ final class TranslationService: ObservableObject {
     @Published var endpoint = "" {
         didSet {
             defaults?.set(endpoint, forKey: "translationEndpoint")
-            if oldValue != endpoint { serverModel = "" }
+            if oldValue != endpoint {
+                serverModel = ""
+                qualityWarning = nil
+            }
+        }
+    }
+    @Published var authToken = "" {
+        didSet {
+            guard !isLoadingAuthToken else { return }
+            let normalized: String
+            do {
+                normalized = try TranslationConfiguration.normalizedAuthToken(authToken) ?? ""
+            } catch {
+                serverModel = ""
+                qualityWarning = nil
+                alertMessage = error.localizedDescription
+                return
+            }
+            if authToken != normalized {
+                isNormalizingAuthToken = true
+                authToken = normalized
+                isNormalizingAuthToken = false
+            }
+            guard !isNormalizingAuthToken else { return }
+            do {
+                try tokenStore.saveToken(normalized)
+            } catch {
+                alertMessage = "The access token could not be saved to this iPhone’s Keychain. Re-enter it and try again."
+            }
+            if oldValue != normalized {
+                serverModel = ""
+                qualityWarning = nil
+            }
         }
     }
     @Published private(set) var state: TranslationState = .idle
@@ -15,11 +47,15 @@ final class TranslationService: ObservableObject {
     @Published private(set) var speechDetected = false
     @Published private(set) var pendingCount = 0
     @Published private(set) var serverModel = ""
+    @Published private(set) var qualityWarning: String?
     @Published private(set) var alertMessage: String?
 
     private let audio: any AudioCapturing
     private let client: any TranslationNetworking
     private let defaults: UserDefaults?
+    private let tokenStore: any TokenStoring
+    private var isLoadingAuthToken = true
+    private var isNormalizingAuthToken = false
     private var generation = UUID()
     private var capabilityTask: Task<ServerCapabilities, Error>?
     private var worker: Task<Void, Never>?
@@ -33,11 +69,24 @@ final class TranslationService: ObservableObject {
     private static let maximumHistory = 200
     private static let maximumRetries = 8
 
-    init(audio: (any AudioCapturing)? = nil, client: any TranslationNetworking = TranslationClient(), defaults: UserDefaults? = .standard) {
+    init(
+        audio: (any AudioCapturing)? = nil,
+        client: any TranslationNetworking = TranslationClient(),
+        defaults: UserDefaults? = .standard,
+        tokenStore: any TokenStoring = KeychainTokenStore()
+    ) {
         self.audio = audio ?? AudioCaptureEngine()
         self.client = client
         self.defaults = defaults
+        self.tokenStore = tokenStore
         self.endpoint = defaults?.string(forKey: "translationEndpoint") ?? ""
+        do {
+            self.authToken = try tokenStore.loadToken()
+        } catch {
+            self.authToken = ""
+            self.alertMessage = "The saved access token could not be read from this iPhone’s Keychain. Re-enter it in Connection settings."
+        }
+        self.isLoadingAuthToken = false
     }
 
     var isRecording: Bool { state == .listening }
@@ -46,7 +95,7 @@ final class TranslationService: ObservableObject {
 
     func start() async {
         guard !isBusy else { return }
-        let configuration = TranslationConfiguration(endpoint: endpoint)
+        let configuration = currentConfiguration
         do { _ = try configuration.validatedEndpoint() }
         catch { fail(error.localizedDescription); return }
         let token = UUID()
@@ -54,6 +103,7 @@ final class TranslationService: ObservableObject {
         state = .connecting
         alertMessage = nil
         serverModel = ""
+        qualityWarning = nil
         terminalAudioFailure = nil
         let task = Task { try await client.checkCapabilities(configuration: configuration) }
         capabilityTask = task
@@ -63,6 +113,7 @@ final class TranslationService: ObservableObject {
             try capabilities.validateForTashelhitTranslation()
             capabilityTask = nil
             serverModel = capabilities.model
+            qualityWarning = capabilities.experimentalQualityWarning
             sessionConfiguration = configuration
             try await audio.start(
                 onChunk: { [weak self] chunk in
@@ -125,9 +176,10 @@ final class TranslationService: ObservableObject {
         state = .connecting
         alertMessage = nil
         serverModel = ""
+        qualityWarning = nil
         let token = UUID()
         generation = token
-        let configuration = TranslationConfiguration(endpoint: endpoint)
+        let configuration = currentConfiguration
         let task = Task { try await client.checkCapabilities(configuration: configuration) }
         capabilityTask = task
         do {
@@ -135,6 +187,7 @@ final class TranslationService: ObservableObject {
             guard generation == token else { return }
             try capabilities.validateForTashelhitTranslation()
             serverModel = capabilities.model
+            qualityWarning = capabilities.experimentalQualityWarning
             state = .idle
         } catch {
             guard generation == token else { return }
@@ -149,7 +202,7 @@ final class TranslationService: ObservableObject {
               let chunk = retryAudio[entry.id],
               let index = translations.firstIndex(where: { $0.id == entry.id }),
               !translations[index].isPending else { return }
-        let configuration = TranslationConfiguration(endpoint: endpoint)
+        let configuration = currentConfiguration
         do { _ = try configuration.validatedEndpoint() }
         catch { fail(error.localizedDescription); return }
         translations[index].errorMessage = nil
@@ -166,6 +219,10 @@ final class TranslationService: ObservableObject {
         retryOrder.removeAll()
     }
     func dismissAlert() { alertMessage = nil }
+
+    private var currentConfiguration: TranslationConfiguration {
+        TranslationConfiguration(endpoint: endpoint, authToken: authToken)
+    }
 
     private func receive(_ chunk: PCMChunk, token: UUID) {
         guard generation == token, let configuration = sessionConfiguration,

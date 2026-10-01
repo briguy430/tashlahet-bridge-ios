@@ -18,6 +18,7 @@
 		D2BB75F6B1915F66660CF40C /* ConversationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF582C878F1CB4F8CCADD04B /* ConversationView.swift */; };
 		D9FFEA04FD214BCDD36EE94D /* TranslationClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 081C3911261788E23807AAF7 /* TranslationClientTests.swift */; };
 		EB6B365D10BED6AE9D7C14C5 /* BridgeModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72CFFEE3999B7B9139104073 /* BridgeModels.swift */; };
+		F1C2F81FF96524AD2205E9AB /* TokenStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 486F9C3D33035F071C7D2E9A /* TokenStore.swift */; };
 		FEC0BD2BEF9291B313339DC0 /* AudioCaptureEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FC9C212BF55AEE008E1046C /* AudioCaptureEngine.swift */; };
 /* End PBXBuildFile section */
 
@@ -38,6 +39,7 @@
 		12EE75B7E2B0985424230CCC /* AudioProcessingPipelineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioProcessingPipelineTests.swift; sourceTree = "<group>"; };
 		2CBF15CC9C24AC74BAABB39D /* TranslationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslationService.swift; sourceTree = "<group>"; };
 		2D29790CAE590D1E0139A71C /* TranslationServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslationServiceTests.swift; sourceTree = "<group>"; };
+		486F9C3D33035F071C7D2E9A /* TokenStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenStore.swift; sourceTree = "<group>"; };
 		4AA8F2B1933F75F5F966E500 /* TashlahetBridgeTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = TashlahetBridgeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		72881A4EE583AC4E5211DDAC /* VoiceActivitySegmenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceActivitySegmenter.swift; sourceTree = "<group>"; };
 		72CFFEE3999B7B9139104073 /* BridgeModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BridgeModels.swift; sourceTree = "<group>"; };
@@ -79,6 +81,7 @@
 				BF582C878F1CB4F8CCADD04B /* ConversationView.swift */,
 				12593DEF52C6BB2929897D3B /* Info.plist */,
 				E8FA33B5B56864E0A1E412DD /* TashlahetBridgeApp.swift */,
+				486F9C3D33035F071C7D2E9A /* TokenStore.swift */,
 				116C11992EBE65B00D53ABCC /* TranslationClient.swift */,
 				2CBF15CC9C24AC74BAABB39D /* TranslationService.swift */,
 				72881A4EE583AC4E5211DDAC /* VoiceActivitySegmenter.swift */,
@@ -191,6 +194,7 @@
 				95D2584D94BA74EBF3A2E38E /* ConnectionSettingsView.swift in Sources */,
 				D2BB75F6B1915F66660CF40C /* ConversationView.swift in Sources */,
 				2735C7E44130E3650E0E25E1 /* TashlahetBridgeApp.swift in Sources */,
+				F1C2F81FF96524AD2205E9AB /* TokenStore.swift in Sources */,
 				C4BFFA714DC2DEB7A740608E /* TranslationClient.swift in Sources */,
 				507B3A59D94B82AD7B5029FE /* TranslationService.swift in Sources */,
 				54606374B55C25FA49D9EF51 /* VoiceActivitySegmenter.swift in Sources */,

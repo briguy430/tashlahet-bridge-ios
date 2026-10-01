@@ -4,9 +4,32 @@ import Foundation
 /// A device can reach a Mac on the same Wi-Fi at e.g. http://192.168.1.20:8080/inference.
 struct TranslationConfiguration: Sendable, Equatable {
     var endpoint: String
+    var authToken: String
 
-    init(endpoint: String = "") {
+    init(endpoint: String = "", authToken: String = "") {
         self.endpoint = endpoint
+        self.authToken = authToken
+    }
+
+    static func normalizedAuthToken(_ input: String) throws -> String? {
+        guard !input.unicodeScalars.contains(where: { CharacterSet.newlines.contains($0) }) else {
+            throw TranslationError.configuration("The access token cannot contain line breaks.")
+        }
+        let token = input.trimmingCharacters(in: .whitespaces)
+        guard !token.isEmpty else { return nil }
+        guard !token.unicodeScalars.contains(where: {
+            CharacterSet.whitespacesAndNewlines.contains($0)
+                || CharacterSet.controlCharacters.contains($0)
+        }) else {
+            throw TranslationError.configuration(
+                "The access token cannot contain spaces, tabs, line breaks, or control characters."
+            )
+        }
+        return token
+    }
+
+    func validatedAuthToken() throws -> String? {
+        try Self.normalizedAuthToken(authToken)
     }
 
     func validatedEndpoint() throws -> URL {
@@ -23,6 +46,11 @@ struct TranslationConfiguration: Sendable, Equatable {
               let url = components.url else {
             throw TranslationError.configuration(
                 "Use an HTTP or HTTPS server URL without a username, password, query, or fragment."
+            )
+        }
+        if try validatedAuthToken() != nil, scheme != "https" {
+            throw TranslationError.configuration(
+                "Access tokens require an HTTPS translation server address."
             )
         }
         guard url.lastPathComponent == "inference",
@@ -66,6 +94,30 @@ struct ServerCapabilities: Codable, Sendable {
     let audioFormats: [String]
     let sampleRates: [Int]
     let channels: [Int]
+    let qualityStatus: String?
+    let qualityWarning: String?
+
+    init(
+        model: String,
+        sourceLanguages: [String],
+        tasks: [String],
+        targetLanguages: [String],
+        audioFormats: [String],
+        sampleRates: [Int],
+        channels: [Int],
+        qualityStatus: String? = nil,
+        qualityWarning: String? = nil
+    ) {
+        self.model = model
+        self.sourceLanguages = sourceLanguages
+        self.tasks = tasks
+        self.targetLanguages = targetLanguages
+        self.audioFormats = audioFormats
+        self.sampleRates = sampleRates
+        self.channels = channels
+        self.qualityStatus = qualityStatus
+        self.qualityWarning = qualityWarning
+    }
 
     enum CodingKeys: String, CodingKey {
         case model, tasks, channels
@@ -73,6 +125,18 @@ struct ServerCapabilities: Codable, Sendable {
         case targetLanguages = "target_languages"
         case audioFormats = "audio_formats"
         case sampleRates = "sample_rates"
+        case qualityStatus = "quality_status"
+        case qualityWarning = "quality_warning"
+    }
+
+    var experimentalQualityWarning: String? {
+        guard qualityStatus?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+                == "experimental" else { return nil }
+        if let warning = qualityWarning?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !warning.isEmpty {
+            return String(warning.prefix(240))
+        }
+        return "Experimental accuracy: translations have not yet been verified by native Tashelhit speakers."
     }
 
     func validateForTashelhitTranslation() throws {
@@ -151,6 +215,7 @@ final class TranslationClient: @unchecked Sendable {
         var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 10)
         request.httpMethod = "GET"
         request.setValue("application/json", forHTTPHeaderField: "Accept")
+        try Self.addAuthorization(to: &request, configuration: configuration)
         let data = try await send(request)
         let capabilities: ServerCapabilities
         do {
@@ -182,6 +247,7 @@ final class TranslationClient: @unchecked Sendable {
         request.setValue("1", forHTTPHeaderField: "X-Channels")
         request.setValue("f32le", forHTTPHeaderField: "X-Audio-Format")
         request.setValue(chunk.id.uuidString, forHTTPHeaderField: "X-Chunk-ID")
+        try Self.addAuthorization(to: &request, configuration: configuration)
         request.httpBody = Self.pcmData(chunk.samples)
         let data = try await send(request)
         let response: TranslationResponse
@@ -211,6 +277,14 @@ final class TranslationClient: @unchecked Sendable {
             text: response.text.trimmingCharacters(in: .whitespacesAndNewlines),
             serverMilliseconds: response.inferenceMilliseconds
         )
+    }
+
+    private static func addAuthorization(
+        to request: inout URLRequest,
+        configuration: TranslationConfiguration
+    ) throws {
+        guard let token = try configuration.validatedAuthToken() else { return }
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
     }
 
     private static func pcmData(_ samples: [Float]) -> Data {

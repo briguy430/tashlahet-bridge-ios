@@ -76,6 +76,63 @@ final class TranslationClientTests: XCTestCase {
         }
     }
 
+    func testCapabilitiesAddsTrimmedBearerToken() async throws {
+        StubURLProtocol.enqueueJSON(compatibleCapabilitiesJSON)
+
+        _ = try await client.checkCapabilities(
+            configuration: TranslationConfiguration(
+                endpoint: "https://translation.example/inference",
+                authToken: "  private-access-token  "
+            )
+        )
+
+        let recorded = try XCTUnwrap(StubURLProtocol.recordedRequests().only)
+        XCTAssertEqual(recorded.url?.absoluteString, "https://translation.example/capabilities")
+        XCTAssertEqual(recorded.header("Authorization"), "Bearer private-access-token")
+    }
+
+    func testCapabilitiesRemainCompatibleWhenQualityFieldsAreMissing() async throws {
+        StubURLProtocol.enqueueJSON(compatibleCapabilitiesJSON)
+
+        let capabilities = try await client.checkCapabilities(configuration: serverConfiguration)
+
+        XCTAssertNil(capabilities.qualityStatus)
+        XCTAssertNil(capabilities.qualityWarning)
+        XCTAssertNil(capabilities.experimentalQualityWarning)
+    }
+
+    func testCapabilitiesDecodeExperimentalQualityWarning() async throws {
+        StubURLProtocol.enqueueJSON(
+            #"{"model":"tashelhit-translator","source_languages":["shi"],"tasks":["translate"],"target_languages":["en"],"audio_formats":["f32le"],"sample_rates":[16000],"channels":[1],"quality_status":"experimental","quality_warning":"Accuracy is experimental and still needs native-speaker review."}"#
+        )
+
+        let capabilities = try await client.checkCapabilities(configuration: serverConfiguration)
+
+        XCTAssertEqual(capabilities.qualityStatus, "experimental")
+        XCTAssertEqual(
+            capabilities.experimentalQualityWarning,
+            "Accuracy is experimental and still needs native-speaker review."
+        )
+    }
+
+    func testExperimentalQualityStatusProvidesCandidFallbackWarning() {
+        let capabilities = ServerCapabilities(
+            model: "tashelhit-translator",
+            sourceLanguages: ["shi"],
+            tasks: ["translate"],
+            targetLanguages: ["en"],
+            audioFormats: ["f32le"],
+            sampleRates: [16_000],
+            channels: [1],
+            qualityStatus: "experimental"
+        )
+
+        XCTAssertEqual(
+            capabilities.experimentalQualityWarning,
+            "Experimental accuracy: translations have not yet been verified by native Tashelhit speakers."
+        )
+    }
+
     func testMissingCapabilitiesEndpointExplainsThatStockWhisperIsUnsupported() async throws {
         StubURLProtocol.enqueueJSON(#"{"error":"not found"}"#, statusCode: 404)
 
@@ -130,6 +187,7 @@ final class TranslationClientTests: XCTestCase {
         XCTAssertEqual(recorded.header("X-Channels"), "1")
         XCTAssertEqual(recorded.header("X-Audio-Format"), "f32le")
         XCTAssertEqual(recorded.header("X-Chunk-ID"), chunkID.uuidString)
+        XCTAssertNil(recorded.header("Authorization"))
         XCTAssertEqual(
             recorded.body,
             Data([
@@ -139,6 +197,23 @@ final class TranslationClientTests: XCTestCase {
                 0x00, 0x00, 0x20, 0x3E,
             ])
         )
+    }
+
+    func testTranslateAddsBearerToken() async throws {
+        StubURLProtocol.enqueueJSON(
+            #"{"text":"Hello","source_language":"shi","target_language":"en","chunk_id":"01234567-89AB-CDEF-0123-456789ABCDEF","task":"translate"}"#
+        )
+
+        _ = try await client.translate(
+            chunk,
+            configuration: TranslationConfiguration(
+                endpoint: "https://translation.example/inference",
+                authToken: "private-access-token"
+            )
+        )
+
+        let recorded = try XCTUnwrap(StubURLProtocol.recordedRequests().only)
+        XCTAssertEqual(recorded.header("Authorization"), "Bearer private-access-token")
     }
 
     func testTranslateRejectsResponseForDifferentChunk() async throws {
@@ -343,8 +418,41 @@ final class TranslationClientTests: XCTestCase {
         }
     }
 
+    func testBearerTokenRequiresHTTPS() {
+        XCTAssertThrowsError(
+            try TranslationConfiguration(
+                endpoint: "http://translation.example/inference",
+                authToken: "private-access-token"
+            ).validatedEndpoint()
+        ) { error in
+            guard case TranslationError.configuration(let message) = error else {
+                return XCTFail("Expected configuration error, got \(error.localizedDescription)")
+            }
+            XCTAssertTrue(message.contains("HTTPS"))
+        }
+    }
+
+    func testBearerTokenRejectsEmbeddedWhitespaceAndHeaderLineBreaks() {
+        for token in ["private access token", "private-token\r\nX-Injected: true"] {
+            XCTAssertThrowsError(
+                try TranslationConfiguration(
+                    endpoint: "https://translation.example/inference",
+                    authToken: token
+                ).validatedEndpoint()
+            ) { error in
+                guard case TranslationError.configuration = error else {
+                    return XCTFail("Expected configuration error, got \(error.localizedDescription)")
+                }
+            }
+        }
+    }
+
     private var serverConfiguration: TranslationConfiguration {
         TranslationConfiguration(endpoint: "https://translation.example/inference")
+    }
+
+    private var compatibleCapabilitiesJSON: String {
+        #"{"model":"tashelhit-translator","source_languages":["shi"],"tasks":["translate"],"target_languages":["en"],"audio_formats":["f32le"],"sample_rates":[16000],"channels":[1]}"#
     }
 
     private var chunk: PCMChunk {

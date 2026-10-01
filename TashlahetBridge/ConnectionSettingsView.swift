@@ -11,7 +11,7 @@ struct ConnectionSettingsView: View {
     var body: some View {
         Form {
             Section {
-                TextField("http://your-mac.local:8080/inference", text: $service.endpoint)
+                TextField("https://your-server/inference", text: $service.endpoint)
                     .keyboardType(.URL)
                     .textContentType(.URL)
                     .textInputAutocapitalization(.never)
@@ -19,6 +19,15 @@ struct ConnectionSettingsView: View {
                     .disabled(service.isBusy || isTesting)
                     .accessibilityLabel("Translation server address")
                     .onChange(of: service.endpoint) { _, _ in didTest = false }
+
+                SecureField("Optional access token", text: $service.authToken)
+                    .textContentType(.password)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    .disabled(service.isBusy || isTesting)
+                    .privacySensitive()
+                    .accessibilityLabel("Translation server access token")
+                    .onChange(of: service.authToken) { _, _ in didTest = false }
 
                 Button {
                     Task {
@@ -46,6 +55,9 @@ struct ConnectionSettingsView: View {
                     LabeledContent("Translation model", value: service.serverModel)
                         .font(.footnote)
                 }
+                if let warning = service.qualityWarning {
+                    ExperimentalQualityWarningBanner(message: warning)
+                }
                 if didTest, let message = service.alertMessage {
                     Label(message, systemImage: "exclamationmark.circle")
                         .font(.footnote)
@@ -54,7 +66,7 @@ struct ConnectionSettingsView: View {
             } header: {
                 Text("Translation server")
             } footer: {
-                Text("Connect your iPhone and server to the same Wi-Fi network. Enter your Mac’s local hostname or network address. “localhost” on an iPhone refers to the iPhone.")
+                Text("Use HTTPS with an access token to connect over the internet or a private network such as Tailscale. If your Mac hosts the server, it must stay powered on. The token is stored only in this iPhone’s Keychain. “localhost” on an iPhone refers to the iPhone.")
             }
 
             Section {
@@ -92,5 +104,22 @@ struct ConnectionSettingsView: View {
         }
         .interactiveDismissDisabled(isTesting)
         .tint(BridgeStyle.teal)
+    }
+}
+
+struct ExperimentalQualityWarningBanner: View {
+    let message: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Label("Experimental accuracy", systemImage: "exclamationmark.triangle.fill")
+                .font(.footnote.weight(.semibold))
+            Text(message)
+                .font(.footnote)
+        }
+        .foregroundStyle(.orange)
+        .fixedSize(horizontal: false, vertical: true)
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("experimental-quality-warning")
     }
 }

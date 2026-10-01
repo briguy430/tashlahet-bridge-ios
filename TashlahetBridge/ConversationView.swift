@@ -177,6 +177,16 @@ struct ConversationView: View {
             }
             .padding(18)
 
+            if let warning = service.qualityWarning {
+                Divider()
+                    .overlay(Color.orange.opacity(0.2))
+                ExperimentalQualityWarningBanner(message: warning)
+                    .padding(.horizontal, 18)
+                    .padding(.vertical, 12)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color.orange.opacity(0.08))
+            }
+
             Divider()
                 .overlay(BridgeStyle.teal.opacity(0.08))
 

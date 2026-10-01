@@ -1,12 +1,12 @@
 # Tashlahet Bridge for iPhone
 
-A native iPhone conversation bridge that captures short phrases of microphone audio and displays English returned by a compatible Tashelhit translation server.
+A native iPhone app that captures short Tashelhit phrases and displays English returned by a translation server.
 
-**Current status:** the iPhone app builds and its automated tests pass. No translation model or server is bundled. Actual Tashelhit-to-English translation accuracy and latency have not been validated. The app checks server capabilities before opening the microphone.
+**Status:** the iPhone client and a private experimental Mac backend are implemented. Released MMS `shi` ASR and Helsinki English translation weights run on the mini. The tested English model makes major meaning errors on everyday sentences, so this is an evaluation prototype. It is not yet a validated conversation translator. The app checks server capabilities before opening the microphone and shows experimental accuracy warnings.
 
-## Open and build
+## Build the iPhone app
 
-Open `TashlahetBridge.xcodeproj` in Xcode, choose the `TashlahetBridge` scheme, then select an iPhone simulator or your iPhone. For a physical iPhone, select your development team under Signing & Capabilities. Deployment target: iOS 18 or later. The checked-in project is ready to open; XcodeGen is only needed to regenerate it after editing `project.yml`.
+Open `TashlahetBridge.xcodeproj`, choose the `TashlahetBridge` scheme, and select a simulator or your iPhone. For physical installation, choose your development team under Signing & Capabilities. Deployment target: iOS 18 or later. XcodeGen is needed only to regenerate the project after source/project changes.
 
 ```sh
 xcodebuild test -project TashlahetBridge.xcodeproj \
@@ -15,28 +15,26 @@ xcodebuild test -project TashlahetBridge.xcodeproj \
   -derivedDataPath build/DerivedData CODE_SIGNING_ALLOWED=NO
 ```
 
-## Connect a server
+## Model and server setup
 
-1. Run a backend that implements [the server contract](docs/server-contract.md) with a model trained and evaluated for Tashelhit (`shi`) to English.
-2. Put the iPhone and server on the same Wi-Fi network, or use a trusted HTTPS server.
-3. Tap **Set up translation server**, enter its `/inference` URL, and tap **Test Connection**.
-4. Allow Local Network and microphone access when iOS asks. Tap **Start Live Feed**, speak, and pause naturally between phrases.
+See [the model research and measured results](docs/model-backend-options.md) and [backend setup](docs/backend-setup.md). The backend downloads pinned model weights separately and requires an explicit experimental launch flag. It implements [the raw PCM server contract](docs/server-contract.md).
 
-On a physical iPhone, `localhost` is the phone. Use the Mac's LAN address or local hostname, for example `http://your-mac.local:8080/inference`. Local HTTP is supported by the app's local-network transport exception; remote servers should use HTTPS. Credentials in URLs and redirects are rejected.
+The intended away-from-home route is **iPhone → private HTTPS/Tailscale → Mac mini models**. The phone needs internet and Tailscale; the mini and backend must remain on. Models do not run on the iPhone. A TLS reverse proxy is required because the backend binds to localhost and the app sends tokens only over HTTPS.
 
-Stock Whisper and stock whisper.cpp are not compatible with this custom raw PCM API. Setting `shi` in a request header does not add language support to a model. The backend must supply the language capability, not merely echo a successful capability response.
+In the app, tap **Set up translation server**, enter the HTTPS `/inference` URL and access token, then tap **Test Connection**. The token is stored in the iPhone Keychain. Allow microphone/local-network access when prompted. For an evaluation, tap **Start Live Feed**, speak, and pause between phrases.
+
+Standard Whisper has no `shi` language entry. A Tashelhit fine-tune would be a different model; changing headers does not train it. Stock whisper.cpp also uses a different audio request format.
 
 ## Behavior and privacy
 
-- AVAudioEngine captures input Bus 0. A serial worker converts to 16 kHz mono Float32 and segments phrases using audio energy.
-- Speech segmentation includes 200 ms pre-roll, a 400 ms closing pause, and a five-second maximum chunk. Energy detection indicates audio activity; it does not identify the language.
-- Requests use raw little-endian Float32 PCM and specify source `shi`, target `en`, task `translate`. Responses must match the audio chunk ID and language pair.
-- Stop releases the microphone immediately, flushes the final speech tail, and finishes the accepted translation queue. In-flight requests can take up to the configured server timeout.
-- A slow backend stops recording with an explicit error rather than silently dropping speech. Failed phrases can be retried while their audio remains available.
-- The app keeps at most four pending phrases, eight failed audio chunks for retry, and 200 transcript entries. Audio and transcripts remain in memory and are released on clearing the conversation or app termination. Only the selected server address is persisted.
-- Calls, microphone route changes, and backgrounding stop microphone capture. Translations may finish while the app still has execution time; there is no background recording mode.
-- Audio is sent to the server you select. That server controls its own logging and retention. Local HTTP is unencrypted on the LAN.
+- AVAudioEngine converts input to 16 kHz mono Float32. Energy segmentation uses 200 ms pre-roll, a 400 ms closing pause, and a five-second maximum chunk. Energy detection does not identify a language.
+- Responses must match the phrase ID and language pair. Stop releases the microphone, flushes the last speech tail, and drains accepted requests.
+- A slow server stops recording with a visible error. Failed phrases can be retried while their audio is retained.
+- Memory is bounded to four pending phrases, eight failed audio chunks, and 200 transcript entries. Clearing the conversation or terminating the app releases audio/transcripts.
+- The server URL is persisted in UserDefaults; the access token is stored only in Keychain. Network responses are bounded and redirects are rejected.
+- Calls, route changes, and backgrounding stop microphone capture. There is no background recording mode.
+- Audio goes to the chosen server. The included backend disables access logging and does not save audio/transcripts. Other servers control their own retention.
 
 ## Verification
 
-See [the local continuation report](verification/LOCAL_CONTINUATION.md) for build/test evidence and remaining limitations. Tests use synthetic PCM and controlled network responses; they do not establish real conversation translation quality.
+See [local verification](verification/LOCAL_CONTINUATION.md). Automated audio, client, and protocol tests establish implementation behavior. Actual model probes establish that inference executes. Native-speaker checks are still required to establish translated meaning.

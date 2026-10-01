@@ -6,7 +6,7 @@ final class TranslationServiceTests: XCTestCase {
     func testUnsupportedServerNeverOpensMicrophone() async {
         let audio = ControlledAudio()
         let client = ControlledClient(supported: false)
-        let service = TranslationService(audio: audio, client: client, defaults: nil)
+        let service = TranslationService(audio: audio, client: client, defaults: nil, tokenStore: MemoryTokenStore())
         service.endpoint = "https://example.test/inference"
         await service.start()
         XCTAssertEqual(service.state, .failed)
@@ -16,7 +16,7 @@ final class TranslationServiceTests: XCTestCase {
 
     func testStopTranslatesFinalSpeechTailAndRetainsOrder() async {
         let audio = ControlledAudio()
-        let service = TranslationService(audio: audio, client: ControlledClient(), defaults: nil)
+        let service = TranslationService(audio: audio, client: ControlledClient(), defaults: nil, tokenStore: MemoryTokenStore())
         service.endpoint = "https://example.test/inference"
         await service.start()
         XCTAssertTrue(service.isRecording)
@@ -31,7 +31,7 @@ final class TranslationServiceTests: XCTestCase {
 
     func testLateAudioAfterStopDoesNotCreateTranslation() async {
         let audio = ControlledAudio()
-        let service = TranslationService(audio: audio, client: ControlledClient(), defaults: nil)
+        let service = TranslationService(audio: audio, client: ControlledClient(), defaults: nil, tokenStore: MemoryTokenStore())
         service.endpoint = "https://example.test/inference"
         await service.start()
         await service.stop()
@@ -41,7 +41,7 @@ final class TranslationServiceTests: XCTestCase {
 
     func testEmptyConfigurationDoesNotOpenMicrophone() async {
         let audio = ControlledAudio()
-        let service = TranslationService(audio: audio, client: ControlledClient(), defaults: nil)
+        let service = TranslationService(audio: audio, client: ControlledClient(), defaults: nil, tokenStore: MemoryTokenStore())
         await service.start()
         XCTAssertFalse(service.canStart)
         XCTAssertEqual(audio.startCount, 0)
@@ -51,7 +51,7 @@ final class TranslationServiceTests: XCTestCase {
     func testStopDuringCapabilityCheckCannotStartMicrophoneLater() async {
         let audio = ControlledAudio()
         let client = DelayedCapabilityClient()
-        let service = TranslationService(audio: audio, client: client, defaults: nil)
+        let service = TranslationService(audio: audio, client: client, defaults: nil, tokenStore: MemoryTokenStore())
         service.endpoint = "https://example.test/inference"
         let starting = Task { await service.start() }
         await client.waitUntilChecking()
@@ -66,7 +66,7 @@ final class TranslationServiceTests: XCTestCase {
     func testFailedPhraseCanBeRetriedWithoutChangingItsPosition() async {
         let audio = ControlledAudio()
         let client = RetryClient()
-        let service = TranslationService(audio: audio, client: client, defaults: nil)
+        let service = TranslationService(audio: audio, client: client, defaults: nil, tokenStore: MemoryTokenStore())
         service.endpoint = "https://example.test/inference"
         await service.start()
         audio.emit(samples: [0.1])
@@ -84,7 +84,7 @@ final class TranslationServiceTests: XCTestCase {
 
     func testAudioFailureDuringStopRemainsVisibleAfterQueueDrains() async {
         let audio = ControlledAudio()
-        let service = TranslationService(audio: audio, client: ControlledClient(), defaults: nil)
+        let service = TranslationService(audio: audio, client: ControlledClient(), defaults: nil, tokenStore: MemoryTokenStore())
         service.endpoint = "https://example.test/inference"
         await service.start()
         audio.finalSamples = [0.1]
@@ -97,7 +97,7 @@ final class TranslationServiceTests: XCTestCase {
     }
 
     func testEditingEndpointClearsPreviouslyTestedModel() async {
-        let service = TranslationService(audio: ControlledAudio(), client: ControlledClient(), defaults: nil)
+        let service = TranslationService(audio: ControlledAudio(), client: ControlledClient(), defaults: nil, tokenStore: MemoryTokenStore())
         service.endpoint = "https://first.example.test/inference"
         await service.testConnection()
         XCTAssertFalse(service.serverModel.isEmpty)
@@ -105,9 +105,133 @@ final class TranslationServiceTests: XCTestCase {
         XCTAssertTrue(service.serverModel.isEmpty)
     }
 
+    func testExperimentalCapabilitiesPublishWarningAndEndpointEditClearsIt() async {
+        let service = TranslationService(
+            audio: ControlledAudio(),
+            client: ExperimentalCapabilityClient(),
+            defaults: nil,
+            tokenStore: MemoryTokenStore()
+        )
+        service.endpoint = "https://first.example.test/inference"
+
+        await service.testConnection()
+
+        XCTAssertEqual(
+            service.qualityWarning,
+            "Accuracy is experimental and still needs native-speaker review."
+        )
+        service.endpoint = "https://second.example.test/inference"
+        XCTAssertNil(service.qualityWarning)
+    }
+
+    func testSecureTokenReadFailureSurfacesActionableAlert() {
+        let tokenStore = FailingLoadTokenStore()
+        let service = TranslationService(
+            audio: ControlledAudio(),
+            client: ControlledClient(),
+            defaults: nil,
+            tokenStore: tokenStore
+        )
+
+        XCTAssertTrue(service.authToken.isEmpty)
+        XCTAssertTrue(tokenStore.savedTokens.isEmpty)
+        XCTAssertEqual(
+            service.alertMessage,
+            "The saved access token could not be read from this iPhone’s Keychain. Re-enter it in Connection settings."
+        )
+    }
+
+    func testSecureTokenSaveFailureSurfacesActionableAlert() {
+        let service = TranslationService(
+            audio: ControlledAudio(),
+            client: ControlledClient(),
+            defaults: nil,
+            tokenStore: FailingSaveTokenStore()
+        )
+
+        service.authToken = "private-token"
+
+        XCTAssertEqual(
+            service.alertMessage,
+            "The access token could not be saved to this iPhone’s Keychain. Re-enter it and try again."
+        )
+    }
+
+    func testBearerTokenLoadsFromSecureStoreAndReachesCapabilityAndInferenceRequests() async {
+        let audio = ControlledAudio()
+        let client = RecordingConfigurationClient()
+        let tokenStore = MemoryTokenStore(token: "stored-private-token")
+        let service = TranslationService(
+            audio: audio,
+            client: client,
+            defaults: nil,
+            tokenStore: tokenStore
+        )
+        service.endpoint = "https://example.test/inference"
+
+        await service.start()
+        audio.emit(samples: [0.1])
+        await service.stop()
+
+        let recorded = await client.recordedConfigurations()
+        XCTAssertEqual(service.authToken, "stored-private-token")
+        XCTAssertEqual(recorded.capabilities.map(\.authToken), ["stored-private-token"])
+        XCTAssertEqual(recorded.translations.map(\.authToken), ["stored-private-token"])
+    }
+
+    func testChangingBearerTokenStoresTrimmedValueOutsideUserDefaults() {
+        let suiteName = "TranslationServiceTests.\(UUID().uuidString)"
+        guard let defaults = UserDefaults(suiteName: suiteName) else {
+            return XCTFail("Could not create isolated defaults")
+        }
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        defaults.set("https://example.test/inference", forKey: "translationEndpoint")
+        let defaultsBeforeTokenChange = defaults.persistentDomain(forName: suiteName)
+        let tokenStore = MemoryTokenStore()
+        let service = TranslationService(
+            audio: ControlledAudio(),
+            client: ControlledClient(),
+            defaults: defaults,
+            tokenStore: tokenStore
+        )
+
+        service.authToken = "  replacement-private-token  "
+
+        XCTAssertEqual(service.authToken, "replacement-private-token")
+        XCTAssertEqual(tokenStore.token, "replacement-private-token")
+        XCTAssertEqual(tokenStore.savedTokens, ["replacement-private-token"])
+        XCTAssertTrue(
+            NSDictionary(dictionary: defaults.persistentDomain(forName: suiteName) ?? [:])
+                .isEqual(to: defaultsBeforeTokenChange ?? [:])
+        )
+    }
+
+    func testRetryUsesCurrentBearerToken() async {
+        let audio = ControlledAudio()
+        let client = RecordingRetryClient()
+        let service = TranslationService(
+            audio: audio,
+            client: client,
+            defaults: nil,
+            tokenStore: MemoryTokenStore(token: "first-private-token")
+        )
+        service.endpoint = "https://example.test/inference"
+        await service.start()
+        audio.emit(samples: [0.1])
+        await service.stop()
+        let failed = try! XCTUnwrap(service.translations.first)
+
+        service.authToken = "second-private-token"
+        service.retry(failed)
+        await service.stop()
+
+        let translationTokens = await client.translationTokens()
+        XCTAssertEqual(translationTokens, ["first-private-token", "second-private-token"])
+    }
+
     func testReleasedRetryAudioDoesNotOfferRetry() async {
         let audio = ControlledAudio()
-        let service = TranslationService(audio: audio, client: FailingClient(), defaults: nil)
+        let service = TranslationService(audio: audio, client: FailingClient(), defaults: nil, tokenStore: MemoryTokenStore())
         service.endpoint = "https://example.test/inference"
         for _ in 0..<9 {
             await service.start()
@@ -156,6 +280,107 @@ private struct ControlledClient: TranslationNetworking {
     }
     func translate(_ chunk: PCMChunk, configuration: TranslationConfiguration) async throws -> TranslationResult {
         TranslationResult(text: chunk.samples.first == 0.1 ? "First phrase" : "Second phrase", serverMilliseconds: 12)
+    }
+}
+
+private struct ExperimentalCapabilityClient: TranslationNetworking {
+    func checkCapabilities(configuration: TranslationConfiguration) async throws -> ServerCapabilities {
+        ServerCapabilities(
+            model: "Experimental test fixture",
+            sourceLanguages: ["shi"],
+            tasks: ["translate"],
+            targetLanguages: ["en"],
+            audioFormats: ["f32le"],
+            sampleRates: [16_000],
+            channels: [1],
+            qualityStatus: "experimental",
+            qualityWarning: "Accuracy is experimental and still needs native-speaker review."
+        )
+    }
+
+    func translate(_ chunk: PCMChunk, configuration: TranslationConfiguration) async throws -> TranslationResult {
+        TranslationResult(text: "Translated phrase", serverMilliseconds: 1)
+    }
+}
+
+private final class MemoryTokenStore: TokenStoring {
+    private(set) var token: String
+    private(set) var savedTokens: [String] = []
+
+    init(token: String = "") {
+        self.token = token
+    }
+
+    func loadToken() throws -> String {
+        token
+    }
+
+    func saveToken(_ token: String) throws {
+        self.token = token
+        savedTokens.append(token)
+    }
+}
+
+private final class FailingLoadTokenStore: TokenStoring {
+    private(set) var savedTokens: [String] = []
+
+    func loadToken() throws -> String {
+        throw TestTokenStoreError.unavailable
+    }
+
+    func saveToken(_ token: String) throws {
+        savedTokens.append(token)
+    }
+}
+
+private struct FailingSaveTokenStore: TokenStoring {
+    func loadToken() throws -> String { "" }
+
+    func saveToken(_ token: String) throws {
+        throw TestTokenStoreError.unavailable
+    }
+}
+
+private enum TestTokenStoreError: Error {
+    case unavailable
+}
+
+private actor RecordingConfigurationClient: TranslationNetworking {
+    private var capabilities: [TranslationConfiguration] = []
+    private var translations: [TranslationConfiguration] = []
+
+    func checkCapabilities(configuration: TranslationConfiguration) async throws -> ServerCapabilities {
+        capabilities.append(configuration)
+        return ServerCapabilities(model: "Test fixture", sourceLanguages: ["shi"], tasks: ["translate"], targetLanguages: ["en"], audioFormats: ["f32le"], sampleRates: [16000], channels: [1])
+    }
+
+    func translate(_ chunk: PCMChunk, configuration: TranslationConfiguration) async throws -> TranslationResult {
+        translations.append(configuration)
+        return TranslationResult(text: "Translated phrase", serverMilliseconds: 1)
+    }
+
+    func recordedConfigurations() -> (capabilities: [TranslationConfiguration], translations: [TranslationConfiguration]) {
+        (capabilities, translations)
+    }
+}
+
+private actor RecordingRetryClient: TranslationNetworking {
+    private var tokens: [String] = []
+
+    func checkCapabilities(configuration: TranslationConfiguration) async throws -> ServerCapabilities {
+        ServerCapabilities(model: "Test fixture", sourceLanguages: ["shi"], tasks: ["translate"], targetLanguages: ["en"], audioFormats: ["f32le"], sampleRates: [16000], channels: [1])
+    }
+
+    func translate(_ chunk: PCMChunk, configuration: TranslationConfiguration) async throws -> TranslationResult {
+        tokens.append(configuration.authToken)
+        if tokens.count == 1 {
+            throw TranslationError.server(status: 503, message: "Temporary test failure")
+        }
+        return TranslationResult(text: "Recovered phrase", serverMilliseconds: 1)
+    }
+
+    func translationTokens() -> [String] {
+        tokens
     }
 }
 
