@@ -29,6 +29,14 @@ struct ConnectionSettingsView: View {
                     .accessibilityLabel("Translation server access token")
                     .onChange(of: service.authToken) { _, _ in didTest = false }
 
+                if let message = service.credentialPersistenceError {
+                    Label(message, systemImage: "key.fill")
+                        .font(.footnote)
+                        .foregroundStyle(.red)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("credential-persistence-error")
+                }
+
                 Button {
                     Task {
                         isTesting = true

@@ -7,7 +7,7 @@ Observed on October 1, 2026 on the local Apple silicon Mac mini:
 | Cloud repo access | Cloned `briguy430/tashlahet-bridge-ios`; initial commit `1048c54` contained only a README |
 | Saved work recovery | Five Swift drafts recovered from interrupted cloud workers' saved GitHub tool arguments |
 | Local Apple toolchain | Xcode 27.0, Swift 6.4, iOS 27 SDK, installed iOS 26.5 simulator runtime |
-| Simulator build and XCTest | Passed 44 tests, zero failures; `build/FinalAuthenticatedTests.xcresult` |
+| Simulator build and XCTest | Passed 48 tests, zero failures; final reviewed result in `build/DerivedData/Logs/Test/Test-TashlahetBridge-2026.10.01_12-40-32--0500.xcresult` |
 | Unsigned iPhone build | `xcodebuild build ... -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO` succeeded |
 | Simulator installation and launch | App installed and launched on the iPhone 17 Pro simulator |
 | Portrait UI | Screenshot visually inspected at `verification/iphone-portrait.png` (local, ignored in Git) |
@@ -25,6 +25,8 @@ The first test cycle caught oversized numeric ports that Foundation does not exp
 Independent code review identified dropped audio-drain errors, stale connection status after address edits, dead retry actions after audio expiry, and unbounded response buffering. These were corrected and covered by regression tests. The reviewer rechecked the fixes and reported no remaining concrete defect in those paths. This review does not replace physical-device or language validation.
 
 The follow-up added a pinned MMS → Marian evaluation backend, HTTPS bearer authentication and Keychain storage in the client, and visible experimental quality warnings. Independent review prompted reserving the single slot before body streaming, adding upload/inference deadlines, and reading token files through a checked no-follow descriptor. Keychain tests caught unwanted persistence during initial load; initialization now preserves credentials when reads fail.
+
+A second client review corrected two status issues: quality warnings now remain visible for absent/unknown/self-claimed validated metadata, and failed token saves/deletes revert to the persisted value with a separate durable error. Regression tests cover successful networking and relaunch after those failures.
 
 Current limitations:
 

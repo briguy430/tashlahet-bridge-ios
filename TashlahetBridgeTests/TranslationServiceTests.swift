@@ -134,27 +134,131 @@ final class TranslationServiceTests: XCTestCase {
         )
 
         XCTAssertTrue(service.authToken.isEmpty)
-        XCTAssertTrue(tokenStore.savedTokens.isEmpty)
+        XCTAssertEqual(tokenStore.token, "still-stored-token")
+        XCTAssertTrue(tokenStore.attemptedTokens.isEmpty)
+        XCTAssertNil(service.alertMessage)
         XCTAssertEqual(
-            service.alertMessage,
+            service.credentialPersistenceError,
             "The saved access token could not be read from this iPhone’s Keychain. Re-enter it in Connection settings."
         )
     }
 
-    func testSecureTokenSaveFailureSurfacesActionableAlert() {
+    func testFailedCredentialUpdateRevertsAndSurvivesConnectionAndRelaunch() async {
+        let tokenStore = MemoryTokenStore(token: "stored-private-token")
+        tokenStore.rejectsSaves = true
+        let client = RecordingConfigurationClient()
+        let service = TranslationService(
+            audio: ControlledAudio(),
+            client: client,
+            defaults: nil,
+            tokenStore: tokenStore
+        )
+        service.endpoint = "https://example.test/inference"
+
+        service.authToken = "replacement-private-token"
+
+        XCTAssertEqual(service.authToken, "stored-private-token")
+        XCTAssertEqual(tokenStore.token, "stored-private-token")
+        XCTAssertEqual(tokenStore.attemptedTokens, ["replacement-private-token"])
+        XCTAssertNil(service.alertMessage)
+        XCTAssertEqual(
+            service.credentialPersistenceError,
+            "The access token could not be saved to this iPhone’s Keychain. Your previous token is still active; try again."
+        )
+
+        await service.testConnection()
+
+        let recorded = await client.recordedConfigurations()
+        XCTAssertEqual(recorded.capabilities.map(\.authToken), ["stored-private-token"])
+        XCTAssertFalse(service.serverModel.isEmpty)
+        XCTAssertEqual(
+            service.credentialPersistenceError,
+            "The access token could not be saved to this iPhone’s Keychain. Your previous token is still active; try again."
+        )
+
+        let relaunched = TranslationService(
+            audio: ControlledAudio(),
+            client: ControlledClient(),
+            defaults: nil,
+            tokenStore: tokenStore
+        )
+        XCTAssertEqual(relaunched.authToken, "stored-private-token")
+        XCTAssertEqual(tokenStore.attemptedTokens, ["replacement-private-token"])
+    }
+
+    func testFailedCredentialDeleteRevertsAndSurvivesStartAndRelaunch() async {
+        let tokenStore = MemoryTokenStore(token: "stored-private-token")
+        tokenStore.rejectsSaves = true
+        let client = RecordingConfigurationClient()
+        let service = TranslationService(
+            audio: ControlledAudio(),
+            client: client,
+            defaults: nil,
+            tokenStore: tokenStore
+        )
+        service.endpoint = "https://example.test/inference"
+
+        service.authToken = ""
+
+        XCTAssertEqual(service.authToken, "stored-private-token")
+        XCTAssertEqual(tokenStore.token, "stored-private-token")
+        XCTAssertEqual(tokenStore.attemptedTokens, [""])
+        XCTAssertEqual(
+            service.credentialPersistenceError,
+            "The access token could not be saved to this iPhone’s Keychain. Your previous token is still active; try again."
+        )
+
+        await service.start()
+
+        let recorded = await client.recordedConfigurations()
+        XCTAssertEqual(recorded.capabilities.map(\.authToken), ["stored-private-token"])
+        XCTAssertTrue(service.isRecording)
+        XCTAssertFalse(service.serverModel.isEmpty)
+        XCTAssertEqual(
+            service.credentialPersistenceError,
+            "The access token could not be saved to this iPhone’s Keychain. Your previous token is still active; try again."
+        )
+        await service.stop()
+
+        let relaunched = TranslationService(
+            audio: ControlledAudio(),
+            client: ControlledClient(),
+            defaults: nil,
+            tokenStore: tokenStore
+        )
+        XCTAssertEqual(relaunched.authToken, "stored-private-token")
+        XCTAssertEqual(tokenStore.attemptedTokens, [""])
+    }
+
+    func testSuccessfulCredentialSaveAndDeleteClearPersistenceError() {
+        let tokenStore = MemoryTokenStore(token: "stored-private-token")
+        tokenStore.rejectsSaves = true
         let service = TranslationService(
             audio: ControlledAudio(),
             client: ControlledClient(),
             defaults: nil,
-            tokenStore: FailingSaveTokenStore()
+            tokenStore: tokenStore
         )
 
-        service.authToken = "private-token"
+        service.authToken = "replacement-private-token"
+        XCTAssertNotNil(service.credentialPersistenceError)
 
-        XCTAssertEqual(
-            service.alertMessage,
-            "The access token could not be saved to this iPhone’s Keychain. Re-enter it and try again."
-        )
+        tokenStore.rejectsSaves = false
+        service.authToken = "replacement-private-token"
+        XCTAssertEqual(service.authToken, "replacement-private-token")
+        XCTAssertEqual(tokenStore.token, "replacement-private-token")
+        XCTAssertNil(service.credentialPersistenceError)
+
+        tokenStore.rejectsSaves = true
+        service.authToken = ""
+        XCTAssertEqual(service.authToken, "replacement-private-token")
+        XCTAssertNotNil(service.credentialPersistenceError)
+
+        tokenStore.rejectsSaves = false
+        service.authToken = ""
+        XCTAssertTrue(service.authToken.isEmpty)
+        XCTAssertTrue(tokenStore.token.isEmpty)
+        XCTAssertNil(service.credentialPersistenceError)
     }
 
     func testBearerTokenLoadsFromSecureStoreAndReachesCapabilityAndInferenceRequests() async {
@@ -306,6 +410,8 @@ private struct ExperimentalCapabilityClient: TranslationNetworking {
 private final class MemoryTokenStore: TokenStoring {
     private(set) var token: String
     private(set) var savedTokens: [String] = []
+    private(set) var attemptedTokens: [String] = []
+    var rejectsSaves = false
 
     init(token: String = "") {
         self.token = token
@@ -316,28 +422,24 @@ private final class MemoryTokenStore: TokenStoring {
     }
 
     func saveToken(_ token: String) throws {
+        attemptedTokens.append(token)
+        if rejectsSaves { throw TestTokenStoreError.unavailable }
         self.token = token
         savedTokens.append(token)
     }
 }
 
 private final class FailingLoadTokenStore: TokenStoring {
-    private(set) var savedTokens: [String] = []
+    private(set) var token = "still-stored-token"
+    private(set) var attemptedTokens: [String] = []
 
     func loadToken() throws -> String {
         throw TestTokenStoreError.unavailable
     }
 
     func saveToken(_ token: String) throws {
-        savedTokens.append(token)
-    }
-}
-
-private struct FailingSaveTokenStore: TokenStoring {
-    func loadToken() throws -> String { "" }
-
-    func saveToken(_ token: String) throws {
-        throw TestTokenStoreError.unavailable
+        attemptedTokens.append(token)
+        self.token = token
     }
 }
 

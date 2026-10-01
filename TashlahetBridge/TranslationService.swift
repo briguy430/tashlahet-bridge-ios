@@ -14,31 +14,7 @@ final class TranslationService: ObservableObject {
     }
     @Published var authToken = "" {
         didSet {
-            guard !isLoadingAuthToken else { return }
-            let normalized: String
-            do {
-                normalized = try TranslationConfiguration.normalizedAuthToken(authToken) ?? ""
-            } catch {
-                serverModel = ""
-                qualityWarning = nil
-                alertMessage = error.localizedDescription
-                return
-            }
-            if authToken != normalized {
-                isNormalizingAuthToken = true
-                authToken = normalized
-                isNormalizingAuthToken = false
-            }
-            guard !isNormalizingAuthToken else { return }
-            do {
-                try tokenStore.saveToken(normalized)
-            } catch {
-                alertMessage = "The access token could not be saved to this iPhone’s Keychain. Re-enter it and try again."
-            }
-            if oldValue != normalized {
-                serverModel = ""
-                qualityWarning = nil
-            }
+            persistAuthTokenEdit()
         }
     }
     @Published private(set) var state: TranslationState = .idle
@@ -48,14 +24,15 @@ final class TranslationService: ObservableObject {
     @Published private(set) var pendingCount = 0
     @Published private(set) var serverModel = ""
     @Published private(set) var qualityWarning: String?
+    @Published private(set) var credentialPersistenceError: String?
     @Published private(set) var alertMessage: String?
 
     private let audio: any AudioCapturing
     private let client: any TranslationNetworking
     private let defaults: UserDefaults?
     private let tokenStore: any TokenStoring
-    private var isLoadingAuthToken = true
-    private var isNormalizingAuthToken = false
+    private var isApplyingAuthTokenInternally = true
+    private var lastPersistedAuthToken = ""
     private var generation = UUID()
     private var capabilityTask: Task<ServerCapabilities, Error>?
     private var worker: Task<Void, Never>?
@@ -81,12 +58,16 @@ final class TranslationService: ObservableObject {
         self.tokenStore = tokenStore
         self.endpoint = defaults?.string(forKey: "translationEndpoint") ?? ""
         do {
-            self.authToken = try tokenStore.loadToken()
+            let loadedToken = try tokenStore.loadToken()
+            let normalized = try TranslationConfiguration.normalizedAuthToken(loadedToken) ?? ""
+            self.authToken = normalized
+            self.lastPersistedAuthToken = normalized
         } catch {
             self.authToken = ""
-            self.alertMessage = "The saved access token could not be read from this iPhone’s Keychain. Re-enter it in Connection settings."
+            self.lastPersistedAuthToken = ""
+            self.credentialPersistenceError = "The saved access token could not be read from this iPhone’s Keychain. Re-enter it in Connection settings."
         }
-        self.isLoadingAuthToken = false
+        self.isApplyingAuthTokenInternally = false
     }
 
     var isRecording: Bool { state == .listening }
@@ -222,6 +203,44 @@ final class TranslationService: ObservableObject {
 
     private var currentConfiguration: TranslationConfiguration {
         TranslationConfiguration(endpoint: endpoint, authToken: authToken)
+    }
+
+    private func persistAuthTokenEdit() {
+        guard !isApplyingAuthTokenInternally else { return }
+
+        let normalized: String
+        do {
+            normalized = try TranslationConfiguration.normalizedAuthToken(authToken) ?? ""
+        } catch {
+            applyAuthTokenInternally(lastPersistedAuthToken)
+            credentialPersistenceError = error.localizedDescription
+            return
+        }
+
+        do {
+            try tokenStore.saveToken(normalized)
+        } catch {
+            applyAuthTokenInternally(lastPersistedAuthToken)
+            credentialPersistenceError = "The access token could not be saved to this iPhone’s Keychain. Your previous token is still active; try again."
+            return
+        }
+
+        let changed = lastPersistedAuthToken != normalized
+        lastPersistedAuthToken = normalized
+        if authToken != normalized {
+            applyAuthTokenInternally(normalized)
+        }
+        credentialPersistenceError = nil
+        if changed {
+            serverModel = ""
+            qualityWarning = nil
+        }
+    }
+
+    private func applyAuthTokenInternally(_ token: String) {
+        isApplyingAuthTokenInternally = true
+        authToken = token
+        isApplyingAuthTokenInternally = false
     }
 
     private func receive(_ chunk: PCMChunk, token: UUID) {

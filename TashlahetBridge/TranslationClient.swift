@@ -129,10 +129,10 @@ struct ServerCapabilities: Codable, Sendable {
         case qualityWarning = "quality_warning"
     }
 
-    var experimentalQualityWarning: String? {
-        guard qualityStatus?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-                == "experimental" else { return nil }
-        if let warning = qualityWarning?.trimmingCharacters(in: .whitespacesAndNewlines),
+    var experimentalQualityWarning: String {
+        if qualityStatus?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+                == "experimental",
+           let warning = qualityWarning?.trimmingCharacters(in: .whitespacesAndNewlines),
            !warning.isEmpty {
             return String(warning.prefix(240))
         }

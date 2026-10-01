@@ -98,7 +98,10 @@ final class TranslationClientTests: XCTestCase {
 
         XCTAssertNil(capabilities.qualityStatus)
         XCTAssertNil(capabilities.qualityWarning)
-        XCTAssertNil(capabilities.experimentalQualityWarning)
+        XCTAssertEqual(
+            capabilities.experimentalQualityWarning,
+            "Experimental accuracy: translations have not yet been verified by native Tashelhit speakers."
+        )
     }
 
     func testCapabilitiesDecodeExperimentalQualityWarning() async throws {
@@ -125,6 +128,44 @@ final class TranslationClientTests: XCTestCase {
             sampleRates: [16_000],
             channels: [1],
             qualityStatus: "experimental"
+        )
+
+        XCTAssertEqual(
+            capabilities.experimentalQualityWarning,
+            "Experimental accuracy: translations have not yet been verified by native Tashelhit speakers."
+        )
+    }
+
+    func testUnknownQualityStatusCannotSuppressClientWarning() {
+        let capabilities = ServerCapabilities(
+            model: "tashelhit-translator",
+            sourceLanguages: ["shi"],
+            tasks: ["translate"],
+            targetLanguages: ["en"],
+            audioFormats: ["f32le"],
+            sampleRates: [16_000],
+            channels: [1],
+            qualityStatus: "preview",
+            qualityWarning: "The server says this is ready."
+        )
+
+        XCTAssertEqual(
+            capabilities.experimentalQualityWarning,
+            "Experimental accuracy: translations have not yet been verified by native Tashelhit speakers."
+        )
+    }
+
+    func testServerClaimedVerifiedStatusCannotSuppressClientWarning() {
+        let capabilities = ServerCapabilities(
+            model: "tashelhit-translator",
+            sourceLanguages: ["shi"],
+            tasks: ["translate"],
+            targetLanguages: ["en"],
+            audioFormats: ["f32le"],
+            sampleRates: [16_000],
+            channels: [1],
+            qualityStatus: "verified",
+            qualityWarning: "Native-speaker verified."
         )
 
         XCTAssertEqual(

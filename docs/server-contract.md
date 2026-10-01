@@ -26,7 +26,7 @@ A compatible backend returns HTTP 200 and JSON:
 
 These fields are a server declaration. Advertising support does not prove accuracy. A real backend should only advertise a language/task when its loaded model and runtime support it, and should be evaluated with native speakers before use as a conversation aid. Do not advertise `shi` for stock Whisper or return a fabricated translation.
 
-The optional quality fields display a visible warning in setup and conversation. Omitting them preserves compatibility with existing servers; it does not establish validation. Unloaded or quarantined models return 503 rather than advertise support.
+The optional quality fields provide warning text in setup and conversation. Omitting them preserves compatibility, and the client still shows its own unvalidated-accuracy warning. A server's self-claimed validation status cannot suppress that warning. Unloaded or quarantined models return 503 rather than advertise support.
 
 ## Audio request
 
